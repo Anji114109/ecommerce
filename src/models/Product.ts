@@ -1,5 +1,5 @@
 // src/models/Product.ts
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, InferSchemaType } from 'mongoose';
 
 const productSchema = new Schema({
   name: { type: String, required: true },
@@ -11,6 +11,10 @@ const productSchema = new Schema({
   lastUpdated: { type: Date, default: Date.now },
 });
 
-// Use models.Product to prevent overwrite in dev mode
+// Infer the type from the schema
+export type ProductDocument = InferSchemaType<typeof productSchema> & {
+  _id: string; // lean() converts ObjectId to string
+};
+
 const Product = models.Product || model('Product', productSchema);
 export default Product;

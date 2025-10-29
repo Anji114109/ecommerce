@@ -1,7 +1,7 @@
 // src/app/api/products/[id]/route.ts
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
-import Product from '@/models/Product';
+import Product, { ProductDocument } from '@/models/Product';
 import { Types } from 'mongoose';
 import type { ProductType } from '@/types/product';
 
@@ -16,12 +16,13 @@ export async function GET(
   }
 
   await connectDB();
-  const product = await Product.findById(id).lean();
+  const product = await Product.findById(id).lean() as ProductDocument | null;
+
   if (!product) {
     return Response.json({ error: 'Product not found' }, { status: 404 });
   }
 
-  const serialized = {
+  const serialized: ProductType = {
     id: product._id.toString(),
     name: product.name,
     slug: product.slug,
@@ -30,7 +31,7 @@ export async function GET(
     category: product.category,
     inventory: product.inventory,
     lastUpdated: new Date(product.lastUpdated).toISOString(),
-  } satisfies ProductType;
+  };
 
   return Response.json(serialized);
 }
@@ -58,13 +59,13 @@ export async function PUT(
       id,
       { ...body, lastUpdated: new Date() },
       { new: true, runValidators: true }
-    ).lean();
+    ).lean() as ProductDocument | null;
 
     if (!product) {
       return Response.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const serialized = {
+    const serialized: ProductType = {
       id: product._id.toString(),
       name: product.name,
       slug: product.slug,
@@ -73,7 +74,7 @@ export async function PUT(
       category: product.category,
       inventory: product.inventory,
       lastUpdated: product.lastUpdated.toISOString(),
-    } satisfies ProductType;
+    };
 
     return Response.json(serialized);
   } catch (error: any) {

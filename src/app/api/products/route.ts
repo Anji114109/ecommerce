@@ -1,14 +1,14 @@
 // src/app/api/products/route.ts
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
-import Product from '@/models/Product';
+import Product, { ProductDocument } from '@/models/Product';
 import type { ProductType } from '@/types/product';
 
 export async function GET() {
   await connectDB();
-  const products = await Product.find({}).lean();
+  const products = await Product.find({}).lean() as ProductDocument[];
 
-  const serialized = products.map(p => ({
+  const serialized: ProductType[] = products.map(p => ({
     id: p._id.toString(),
     name: p.name,
     slug: p.slug,
@@ -17,7 +17,7 @@ export async function GET() {
     category: p.category,
     inventory: p.inventory,
     lastUpdated: new Date(p.lastUpdated).toISOString(),
-  })) as ProductType[];
+  }));
 
   return Response.json(serialized);
 }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       lastUpdated: new Date(),
     });
 
-    const serialized = {
+    const serialized: ProductType = {
       id: product._id.toString(),
       name: product.name,
       slug: product.slug,
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       category: product.category,
       inventory: product.inventory,
       lastUpdated: product.lastUpdated.toISOString(),
-    } satisfies ProductType;
+    };
 
     return Response.json(serialized, { status: 201 });
   } catch (error: any) {
