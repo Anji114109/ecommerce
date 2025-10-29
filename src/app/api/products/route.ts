@@ -2,10 +2,12 @@
 import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Product from '@/models/Product';
+import type { ProductType } from '@/types/product';
 
 export async function GET() {
   await connectDB();
   const products = await Product.find({}).lean();
+
   const serialized = products.map(p => ({
     id: p._id.toString(),
     name: p.name,
@@ -15,7 +17,8 @@ export async function GET() {
     category: p.category,
     inventory: p.inventory,
     lastUpdated: new Date(p.lastUpdated).toISOString(),
-  }));
+  })) as ProductType[];
+
   return Response.json(serialized);
 }
 
@@ -33,19 +36,18 @@ export async function POST(req: NextRequest) {
       lastUpdated: new Date(),
     });
 
-    return Response.json(
-      {
-        id: product._id.toString(),
-        name: product.name,
-        slug: product.slug,
-        description: product.description,
-        price: product.price,
-        category: product.category,
-        inventory: product.inventory,
-        lastUpdated: product.lastUpdated.toISOString(),
-      },
-      { status: 201 }
-    );
+    const serialized = {
+      id: product._id.toString(),
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+      inventory: product.inventory,
+      lastUpdated: product.lastUpdated.toISOString(),
+    } satisfies ProductType;
+
+    return Response.json(serialized, { status: 201 });
   } catch (error: any) {
     return Response.json({ error: error.message || 'Invalid data' }, { status: 400 });
   }

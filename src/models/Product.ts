@@ -11,5 +11,6 @@ const productSchema = new Schema({
   lastUpdated: { type: Date, default: Date.now },
 });
 
+// Use models.Product to prevent overwrite in dev mode
 const Product = models.Product || model('Product', productSchema);
 export default Product;

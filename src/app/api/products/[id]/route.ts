@@ -3,12 +3,13 @@ import { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Product from '@/models/Product';
 import { Types } from 'mongoose';
+import type { ProductType } from '@/types/product';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // 👈 await the params
+  const { id } = await params;
 
   if (!Types.ObjectId.isValid(id)) {
     return Response.json({ error: 'Invalid product ID' }, { status: 400 });
@@ -20,7 +21,7 @@ export async function GET(
     return Response.json({ error: 'Product not found' }, { status: 404 });
   }
 
-  return Response.json({
+  const serialized = {
     id: product._id.toString(),
     name: product.name,
     slug: product.slug,
@@ -29,14 +30,16 @@ export async function GET(
     category: product.category,
     inventory: product.inventory,
     lastUpdated: new Date(product.lastUpdated).toISOString(),
-  });
+  } satisfies ProductType;
+
+  return Response.json(serialized);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // 👈 await the params
+  const { id } = await params;
 
   const apiKey = request.headers.get('x-api-key');
   if (apiKey !== process.env.ADMIN_API_KEY) {
@@ -61,7 +64,7 @@ export async function PUT(
       return Response.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return Response.json({
+    const serialized = {
       id: product._id.toString(),
       name: product.name,
       slug: product.slug,
@@ -70,7 +73,9 @@ export async function PUT(
       category: product.category,
       inventory: product.inventory,
       lastUpdated: product.lastUpdated.toISOString(),
-    });
+    } satisfies ProductType;
+
+    return Response.json(serialized);
   } catch (error: any) {
     return Response.json({ error: error.message || 'Update failed' }, { status: 400 });
   }
