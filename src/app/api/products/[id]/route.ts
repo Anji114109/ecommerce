@@ -6,14 +6,16 @@ import { Types } from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!Types.ObjectId.isValid(params.id)) {
+  const { id } = await params; // 👈 await the params
+
+  if (!Types.ObjectId.isValid(id)) {
     return Response.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
   await connectDB();
-  const product = await Product.findById(params.id).lean();
+  const product = await Product.findById(id).lean();
   if (!product) {
     return Response.json({ error: 'Product not found' }, { status: 404 });
   }
@@ -32,14 +34,16 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params; // 👈 await the params
+
   const apiKey = request.headers.get('x-api-key');
   if (apiKey !== process.env.ADMIN_API_KEY) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!Types.ObjectId.isValid(params.id)) {
+  if (!Types.ObjectId.isValid(id)) {
     return Response.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
@@ -48,7 +52,7 @@ export async function PUT(
     await connectDB();
 
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       { ...body, lastUpdated: new Date() },
       { new: true, runValidators: true }
     ).lean();
