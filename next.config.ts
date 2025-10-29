@@ -1,7 +1,11 @@
-import type { NextConfig } from "next";
+// next.config.js
+const path = require('path');
 
-const nextConfig: NextConfig = {
-  /* config options here */
+module.exports = {
+  // Tell Next.js: "My project root is THIS folder"
+  outputFileTracingRoot: path.join(__dirname),
+  // Optional: Also set Turbopack root (for dev server)
+  turbopack: {
+    root: path.join(__dirname),
+  },
 };
-
-export default nextConfig;
